@@ -1,0 +1,77 @@
+rules_version = '2';
+
+// ============================================================
+// RACQUET RETREAT 2027 — Firestore security rules
+// Paste into Firebase console → Firestore → Rules → Publish.
+//
+// Anyone with the link can read. Writing needs the site's automatic
+// anonymous sign-in (no account for friends), a name from the trip list,
+// and data in the expected shape. Ideas and comments can be deleted only
+// from the browser that posted them; Jim can delete anything in the console.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function names() {
+      return ['Russell', 'Ben', 'Stephen', 'Peter', 'Jim'];
+    }
+    function signedIn() {
+      return request.auth != null;
+    }
+    function text(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    // One ballot per person, stored under the lower-case name.
+    match /ballots/{id} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'sport', 'picks', 'sizes', 'level', 'budget',
+                                                  'weekends', 'comments', 'savedAt'])
+        && request.resource.data.name in names()
+        && id == request.resource.data.name.lower()
+        && text(request.resource.data.sport, 40)
+        && request.resource.data.picks is list && request.resource.data.picks.size() <= 5
+        && request.resource.data.sizes is map
+        && text(request.resource.data.level, 40)
+        && text(request.resource.data.budget, 40)
+        && request.resource.data.weekends is list && request.resource.data.weekends.size() <= 12
+        && text(request.resource.data.comments, 1500);
+      allow delete: if false;
+    }
+
+    // Idea board.
+    match /ideas/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['text', 'by', 'uid', 'createdAt', 'plus'])
+        && request.resource.data.by in names()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 280
+        && request.resource.data.plus is list && request.resource.data.plus.size() == 0
+        && request.resource.data.createdAt == request.time;
+      // +1s: only the plus list may change.
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['plus'])
+        && request.resource.data.plus is list && request.resource.data.plus.size() <= 10;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Comments on resort cards.
+    match /comments/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['resortId', 'text', 'by', 'uid', 'createdAt'])
+        && request.resource.data.by in names()
+        && request.resource.data.uid == request.auth.uid
+        && text(request.resource.data.resortId, 30)
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Racquet Retreat 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Libre+Franklin:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: scoreboard header, then a stacked list of resort "match cards", then the ballot and live results board. */
+:root{
+  --bg:#F2F4EE; --surface:#FFFFFF; --ink:#16231B; --muted:#5B6A60; --line:#D6DDD3;
+  --court:#1E5C40; --court-2:#2F7A57; --court-3:#7FB89A; --ball:#D9E63A; --ball-ink:#2B3200;
+  --clay:#B5502F; --clay-bg:#F8E6DE; --chip:#E6ECE3;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Libre Franklin",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1611; --surface:#16211A; --ink:#E7EEE8; --muted:#9AAAA0; --line:#2A3A30;
+  --court:#4FA57C; --court-2:#3A8A64; --court-3:#2C6248; --ball:#D9E63A; --ball-ink:#20260A;
+  --clay:#E58363; --clay-bg:#3A221A; --chip:#203027; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1611; --surface:#16211A; --ink:#E7EEE8; --muted:#9AAAA0; --line:#2A3A30;
+  --court:#4FA57C; --court-2:#3A8A64; --court-3:#2C6248; --ball:#D9E63A; --ball-ink:#20260A;
+  --clay:#E58363; --clay-bg:#3A221A; --chip:#203027; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:980px;margin:0 auto}
+h1,h2,h3,.disp{font-family:var(--display);letter-spacing:.01em;text-wrap:balance;margin:0}
+a{color:var(--court)}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ball);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* Header */
+header.hero{padding-block:28px 22px;border-bottom:2px solid var(--ink);display:grid;gap:14px}
+.eyebrow{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.12em;font-size:14px;color:var(--muted)}
+h1{font-size:clamp(40px,8vw,68px);font-weight:700;line-height:.95;text-transform:uppercase}
+h1 .ball{background:var(--ball);color:var(--ball-ink);padding:0 .12em}
+.lede{max-width:64ch;margin:0;color:var(--ink)}
+.roster{display:flex;flex-wrap:wrap;gap:6px}
+.roster span{font-family:var(--display);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.06em;border:1.5px solid var(--ink);padding:2px 10px;border-radius:999px}
+.keyfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:4px}
+.keyfacts div{border-left:3px solid var(--court);padding:2px 0 2px 10px;font-size:13.5px;color:var(--muted)}
+.keyfacts b{display:block;color:var(--ink);font-size:14px}
+
+/* Section heads */
+section{padding-top:30px}
+.sechead{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:14px}
+h2{font-size:34px;font-weight:700;text-transform:uppercase;line-height:1}
+.sub{color:var(--muted);font-size:14px;margin:4px 0 0;max-width:64ch}
+
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.seg button{background:none;border:0;padding:6px 12px;cursor:pointer;font-family:var(--display);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.05em}
+.seg button+button{border-left:1.5px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.ctl-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+
+/* Level legend */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:0 0 18px}
+.legend div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;color:var(--muted)}
+.legend b{color:var(--ink)}
+.lvl{display:inline-block;font-family:var(--display);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.08em;padding:1px 8px;border-radius:4px;white-space:nowrap}
+.lvl.intensive{background:var(--court);color:var(--bg)}
+.lvl.active{background:var(--court-3);color:var(--ink)}
+.lvl.easy{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+
+/* Cards */
+.cards{display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;gap:12px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+@media (max-width:720px){.card{grid-template-columns:minmax(0,1fr)}}
+.card-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.card h3{font-size:26px;font-weight:700;line-height:1.05;text-transform:uppercase}
+.place{color:var(--muted);font-size:13.5px;margin-top:2px}
+.desc{margin:6px 0 0;font-size:14.5px}
+.travel{font-size:13px;color:var(--muted);margin-top:6px}
+.someday{border:1.5px dashed var(--muted);color:var(--muted);border-radius:8px;padding:6px 10px;font-size:13.5px;font-weight:600}
+.tag{display:inline-block;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--chip);border-radius:4px;padding:1px 7px}
+.tag.eng{border-color:var(--court);color:var(--court);background:none}
+.someday-intro{border:1.5px dashed var(--muted);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:14px;color:var(--muted)}
+.someday-intro b{color:var(--ink)}
+.kv{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:14px}
+.kv dt{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-size:14px}
+.kv dd{margin:0}
+.howto{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+@media (max-width:720px){.howto{grid-template-columns:minmax(0,1fr)}}
+.h-sm{font-size:24px;margin-bottom:8px}
+.steps{margin:0;padding-left:22px;display:grid;gap:7px;font-size:14.5px}
+.steps li::marker{font-family:var(--display);font-weight:700;color:var(--court)}
+.lists{margin:0;display:grid;gap:4px;font-size:14px}
+.lists dt{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:16px;color:var(--court);margin-top:6px}
+.lists dd{margin:0}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.flag{background:var(--clay-bg);color:var(--clay);border-radius:8px;padding:7px 10px;font-size:13.5px;font-weight:600}
+.left{min-width:0;display:grid;gap:8px;align-content:start}
+.right{min-width:0;display:grid;gap:12px;align-content:start}
+
+/* Hours bar */
+.hours-h{display:flex;justify-content:space-between;align-items:baseline}
+.hours-total{font-family:var(--display);font-weight:700;font-size:28px;line-height:1}
+.hours-total small{font-size:15px;color:var(--muted);font-weight:600;margin-left:3px}
+.bar{display:flex;height:22px;border-radius:5px;overflow:hidden;background:var(--chip);margin-top:6px}
+.bar span{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;min-width:0}
+.bar .fri{background:var(--court-2)} .bar .sat{background:var(--court)} .bar .sun{background:#5E9478}
+.bar-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:2px}
+.hrs-note{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+/* Price table */
+.price{width:100%;border-collapse:collapse;font-size:13.5px}
+.price th{font-family:var(--display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right;padding:2px 6px}
+.price th:first-child,.price td:first-child{text-align:left;padding-left:0}
+.price td{text-align:right;padding:4px 6px;border-top:1px solid var(--line)}
+.price td.pp{font-weight:700;font-size:16px}
+.price .on{background:var(--ball);color:var(--ball-ink)}
+.price .on.pp{font-weight:800}
+.incl{font-size:12.5px;color:var(--muted)}
+
+details{font-size:13.5px}
+summary{cursor:pointer;font-weight:600;color:var(--court)}
+details ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
+.src{font-size:12.5px;margin-top:6px;color:var(--muted)}
+.pick-btn{justify-self:start;background:none;border:1.5px solid var(--court);color:var(--court);border-radius:8px;padding:5px 12px;font-weight:600;cursor:pointer;font-size:13.5px}
+.pick-btn:hover{background:var(--court);color:var(--bg)}
+.pick-btn[data-picked="true"]{background:var(--court);color:var(--bg)}
+
+/* Fixes list */
+.fixes{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.fixes ul{margin:8px 0 0;padding-left:18px;display:grid;gap:5px;font-size:14px}
+
+/* Ballot */
+form.ballot{background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:18px;display:grid;gap:20px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px;min-width:0}
+legend{font-family:var(--display);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.03em;padding:0;margin-bottom:2px}
+.hint{font-size:13px;color:var(--muted);margin:-4px 0 2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:14px;background:var(--bg)}
+.chips input{accent-color:var(--court)}
+.chips label:has(input:checked){border-color:var(--court);background:var(--chip);font-weight:600}
+.picks{display:grid;gap:6px}
+.picks div{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px}
+.picks b{font-family:var(--display);font-size:22px;text-align:center}
+select,input[type=text],textarea{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+textarea{min-height:80px;resize:vertical}
+.sizes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.size{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.size h4{margin:0;font-family:var(--display);font-size:19px;text-transform:uppercase}
+.size p{margin:2px 0 8px;font-size:12.5px;color:var(--muted)}
+.stars{display:flex;gap:2px}
+.stars button{background:none;border:0;cursor:pointer;font-size:26px;line-height:1;padding:2px;color:var(--line)}
+.stars button.on{color:var(--court)}
+.star-cap{font-size:12px;color:var(--muted);margin-top:2px;min-height:1.2em}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{background:var(--court);color:var(--bg);border:0;border-radius:8px;padding:10px 18px;font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1.5px solid var(--ink)}
+.status{font-size:13.5px;color:var(--muted)}
+.status.ok{color:var(--court);font-weight:600}
+.status.err{color:var(--clay);font-weight:600}
+.copybox{width:100%;min-height:150px;font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace}
+
+/* Results */
+.board{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:720px){.board{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.panel h3{font-size:20px;text-transform:uppercase;margin-bottom:8px}
+.rank{display:grid;gap:6px;font-size:14px}
+.rank-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.rank-bar{height:6px;background:var(--court);border-radius:3px;margin-top:2px}
+.voters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.voters span{font-size:12.5px;border-radius:999px;padding:2px 10px;border:1px solid var(--line);color:var(--muted)}
+.voters span.in{background:var(--court);color:var(--bg);border-color:var(--court)}
+.ballots{display:grid;gap:8px;font-size:13.5px}
+.ballots div{border-top:1px solid var(--line);padding-top:6px}
+.empty{color:var(--muted);font-size:14px}
+footer{margin-top:34px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+/* Shared-site additions: identity picker, plan, idea board, card comments */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.whoami{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#who button{font-family:var(--display);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:.06em;border:1.5px solid var(--ink);background:none;padding:2px 10px;border-radius:999px;cursor:pointer}
+#who button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.plan{border:2px solid var(--ink);border-radius:14px;padding:16px 18px;background:var(--surface);display:grid;gap:14px}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.pick{border-left:4px solid var(--court);padding:2px 0 2px 12px}
+.pick .k{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--muted)}
+.pick .v{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.05;text-transform:uppercase}
+.pick .why{font-size:13px;color:var(--muted);margin-top:2px}
+.plan .waiting{font-size:13.5px;color:var(--muted)}
+.idea-form{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:10px;margin-bottom:12px}
+.idea-list{display:grid;gap:8px}
+.idea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:start}
+.idea p{margin:0;font-size:15px;overflow-wrap:anywhere}
+.idea .by{grid-column:1;font-size:12.5px;color:var(--muted)}
+.plus{grid-row:1/3;grid-column:2;display:grid;justify-items:center;gap:2px}
+.plus button{border:1.5px solid var(--court);color:var(--court);background:none;border-radius:8px;padding:3px 10px;font-weight:700;cursor:pointer}
+.plus button[aria-pressed="true"]{background:var(--court);color:var(--bg)}
+.plus small{font-size:11.5px;color:var(--muted);text-align:center;max-width:9em}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12.5px}
+.talk{grid-column:1/-1;border-top:1px dashed var(--line);padding-top:10px}
+.talk summary{font-size:13.5px}
+.talk ul{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;font-size:14px}
+.talk li b{font-family:var(--display);text-transform:uppercase;letter-spacing:.04em}
+.talk form{display:flex;gap:8px;flex-wrap:wrap}
+.talk input{flex:1 1 220px}
+.talk .btn{font-size:15px;padding:6px 12px}
+.cmt-count{display:inline-block;font-size:12px;font-weight:700;background:var(--ball);color:var(--ball-ink);border-radius:4px;padding:0 6px;margin-left:6px}
+.demo{background:var(--clay-bg);color:var(--clay);border-radius:8px;padding:8px 12px;font-size:13.5px;font-weight:600;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="demoNote"></div>
+<header class="hero">
+  <div class="eyebrow">Winter weekend · February–March 2027 · 2 nights, Fri–Sun</div>
+  <h1>Racquet <span class="ball">Retreat</span> 2027</h1>
+  <p class="lede">Twenty-one tennis and pickleball trips for this winter, plus ten someday ideas, for a group coming in from Colorado, the DC area and Florida. Each one is checked against the resort's own pages and priced per person for a group of 2, 4 or 6. Read the cards, then fill in your ballot at the bottom. <span id="ledeEnd">Your ballot, ideas and comments show up for the whole group as soon as you save them.</span></p>
+  <div class="whoami"><span class="ctl-label">You are</span><div class="roster" id="who" role="group" aria-label="Pick your name"></div><span class="status" id="whoHint"></span></div>
+  <div class="keyfacts">
+    <div><b>Prices are per person</b>2 nights unless a card says otherwise: lodging, food and program. Flights not included.</div>
+    <div><b>Guided hours</b>Coached or organized play over Fri / Sat / Sun, not open court time.</div>
+    <div><b>Estimates</b>Few resorts publish Feb 2027 rates yet. Treat costs as ±15% until we get quotes.</div>
+  </div>
+</header>
+
+<section id="howto">
+  <div class="howto">
+    <div>
+      <h2 class="h-sm">How to use this page</h2>
+      <ol class="steps">
+        <li>Browse the <b>Tennis</b>, <b>Pickleball</b> and <b>Someday</b> tabs under "The options."</li>
+        <li>Tap <b>2</b>, <b>4</b> or <b>6</b> to see prices for that size group, and sort by <b>Most hours</b> or <b>Lowest cost</b>.</li>
+        <li>Tap <b>Add to my picks</b> on up to five places you like. Open <b>What we checked</b> on a card for details and sources.</li>
+        <li>Scroll to <b>Your ballot</b>: choose your name, put your picks in order, rate each group size, and add your play level, budget and the weekends that work.</li>
+        <li id="step5">Tap <b>Save my ballot</b>. It shows up on the group board right away, and you can change it any time. Add ideas on the <b>Idea board</b> and comments on any resort card.</li>
+      </ol>
+    </div>
+    <div>
+      <h2 class="h-sm">What's on the lists</h2>
+      <dl class="lists">
+        <dt>Tennis · 11</dt>
+        <dd>Full weekend camps (Newcombe Ranch, Saddlebrook, Horseshoe Bay), resorts where we'd book clinics around our own matches (Austin, Charleston, Phoenix, Scottsdale, Palm Springs area, Colorado Springs), and Hawaii or Puerto Rico for a longer trip.</dd>
+        <dt>Pickleball · 10</dt>
+        <dd>The same mix for pickleball. The biggest setups are JW Desert Ridge in Phoenix (17 courts), Horseshoe Bay (14) and Palmas del Mar in Puerto Rico (12).</dd>
+        <dt>Someday · 10</dt>
+        <dd>Ideas for a future trip, not this spring: Mexico, Spain, France, Portugal, Antigua and England.</dd>
+      </dl>
+      <p class="note">Every card shows how much coached or organized play you get each day and an estimated cost per person, flights not included. Travel notes cover getting there from Denver, DC and Florida. Garden of the Gods is a drive for the Colorado crew, and Saddlebrook is a drive for most of Florida. Jim will get real quotes for the top picks.</p>
+    </div>
+  </div>
+</section>
+
+<section id="plan">
+  <div class="sechead"><div>
+    <h2>Where we're leaning</h2>
+    <p class="sub">Worked out from everyone's saved ballots. It changes as ballots come in.</p>
+  </div></div>
+  <div class="plan" id="planBox"><p class="empty">No ballots yet. The plan appears once the first one is saved.</p></div>
+</section>
+
+<section id="ideas">
+  <div class="sechead"><div>
+    <h2>Idea board</h2>
+    <p class="sub">Anything for the trip: a place we missed, a dinner spot, a doubles format, a reason to pick a weekend. Tap <b>+1</b> on ideas you like.</p>
+  </div></div>
+  <form class="idea-form" id="ideaForm">
+    <label for="ideaText" class="sr">Your idea</label>
+    <textarea id="ideaText" maxlength="280" placeholder="Share an idea with the group"></textarea>
+    <div class="actions"><button class="btn" type="submit">Post idea</button><span class="status" id="ideaStatus" role="status"></span></div>
+  </form>
+  <div class="idea-list" id="ideaList"><p class="empty">No ideas yet. Post the first one.</p></div>
+</section>
+
+<section id="options">
+  <div class="sechead">
+    <div>
+      <h2>The options</h2>
+      <p class="sub">Highlighted column follows the group size you pick. Group totals sit under each per-person price.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Sport">
+        <button type="button" data-sport="tennis" aria-pressed="true">Tennis</button>
+        <button type="button" data-sport="pickleball" aria-pressed="false">Pickleball</button>
+        <button type="button" data-sport="someday" aria-pressed="false">Someday</button>
+      </div>
+      <div class="seg" role="group" aria-label="Group size" id="sizeSeg">
+        <button type="button" data-size="2" aria-pressed="false">2</button>
+        <button type="button" data-size="4" aria-pressed="true">4</button>
+        <button type="button" data-size="6" aria-pressed="false">6</button>
+      </div>
+      <div class="seg" role="group" aria-label="Sort" id="sortSeg">
+        <button type="button" data-sort="hours" aria-pressed="true">Most hours</button>
+        <button type="button" data-sort="cost" aria-pressed="false">Lowest cost</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend" id="legend">
+    <div><span class="lvl intensive">Intensive</span><br><b>9+ guided hours.</b> A real camp: morning and afternoon sessions Saturday, drills plus coached match play. You'll be tired Sunday.</div>
+    <div><span class="lvl active">Active</span><br><b>6–8 guided hours.</b> A daily clinic or pro-led round robin, with afternoons free for our own matches.</div>
+    <div><span class="lvl easy">Easygoing</span><br><b>Under 6 guided hours.</b> A clinic or two, then open play, pool and dinner. Most of the tennis is self-organized.</div>
+  </div>
+
+  <div class="someday-intro" id="somedayIntro" hidden><b>* Someday options:</b> future trips, not a fit for this spring. Most suit 4–7 nights, so prices here are rough per-person figures for the stay noted, before flights.</div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section id="vote">
+  <div class="sechead"><div>
+    <h2>Your ballot</h2>
+    <p class="sub">Pick your name, rank five, and rate each group size. Tap <b>Add to my picks</b> on any card to fill the next open slot.</p>
+  </div></div>
+
+  <form class="ballot" id="ballot" novalidate>
+    <fieldset>
+      <legend>Who's voting</legend>
+      <div class="chips" id="names"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sport</legend>
+      <div class="chips">
+        <label><input type="radio" name="sport" id="sp-t" value="Tennis only"> Tennis only</label>
+        <label><input type="radio" name="sport" id="sp-p" value="Pickleball only"> Pickleball only</label>
+        <label><input type="radio" name="sport" id="sp-e" value="Either / combo"> Either / combo</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Top 5 resorts</legend>
+      <p class="hint">1 is your favorite. Mixing tennis and pickleball picks is fine.</p>
+      <div class="picks" id="picks"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Rate each group size</legend>
+      <p class="hint">Compared with our usual 20+ group. 1 star = hate it, 5 stars = love it.</p>
+      <div class="sizes" id="sizes"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>How hard do you want to play?</legend>
+      <div class="chips">
+        <label><input type="radio" name="level" id="lv-i" value="Intensive"> Intensive (9+ hrs)</label>
+        <label><input type="radio" name="level" id="lv-a" value="Active"> Active (6–8 hrs)</label>
+        <label><input type="radio" name="level" id="lv-e" value="Easygoing"> Easygoing (under 6)</label>
+        <label><input type="radio" name="level" id="lv-f" value="Go with the flow"> Go with the flow (flexible)</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Budget cap per person</legend>
+      <p class="hint">Lodging, food and program for the weekend, before flights.</p>
+      <div class="chips">
+        <label><input type="radio" name="budget" id="bg-1" value="Under $750"> Under $750</label>
+        <label><input type="radio" name="budget" id="bg-2" value="$750–$1,000"> $750–$1,000</label>
+        <label><input type="radio" name="budget" id="bg-3" value="$1,000–$1,300"> $1,000–$1,300</label>
+        <label><input type="radio" name="budget" id="bg-4" value="No firm cap"> No firm cap</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Weekends that work</legend>
+      <div class="chips">
+        <label><input type="checkbox" name="wk" id="wk-1" value="Feb 5–7"> Feb 5–7</label>
+        <label><input type="checkbox" name="wk" id="wk-2" value="Feb 12–14"> Feb 12–14 <span class="incl">(Valentine's Sun · Presidents' Day Mon)</span></label>
+        <label><input type="checkbox" name="wk" id="wk-3" value="Feb 19–21"> Feb 19–21</label>
+        <label><input type="checkbox" name="wk" id="wk-4" value="Feb 26–28"> Feb 26–28</label>
+        <label><input type="checkbox" name="wk" id="wk-5" value="Mar 5–7"> Mar 5–7</label>
+        <label><input type="checkbox" name="wk" id="wk-6" value="Mar 12–14"> Mar 12–14</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><label for="comments">Comments and dealbreakers</label></legend>
+      <textarea id="comments" placeholder="Flight times, roommate requests, budget, anything Jim should know"></textarea>
+    </fieldset>
+
+    <div class="actions">
+      <button class="btn" type="submit" id="saveBtn">Save my ballot</button>
+      <span class="status" id="status" role="status"></span>
+    </div>
+  </form>
+</section>
+
+<section id="results">
+  <div class="sechead"><div>
+    <h2>Group board</h2>
+    <p class="sub">Everyone's ballots. Rank points: 5 for a #1 pick down to 1 for #5. Updates live.</p>
+  </div></div>
+  <div class="voters" id="voters"></div>
+  <div class="board">
+    <div class="panel"><h3>Leading resorts</h3><div class="rank" id="rank"><p class="empty">No ballots yet. The first one saved shows up here.</p></div></div>
+    <div class="panel"><h3>Group size</h3><div class="rank" id="sizeRank"><p class="empty">Average stars appear once someone votes.</p></div>
+      <h3 style="margin-top:14px">Ballots</h3><div class="ballots" id="ballotList"><p class="empty">Nothing saved yet.</p></div></div>
+  </div>
+</section>
+
+<footer>
+  Checked November 3, 2026 against resort websites, Tennis Resorts Online, Kayak and guest reviews. Source links sit inside each card. Call before booking: Newcombe, Horseshoe Bay and Omni price groups by quote.
+</footer>
+</div>
+
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
